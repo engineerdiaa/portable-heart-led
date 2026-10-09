@@ -370,4 +370,4 @@ If you change any wiring, change these lines to match.
 
 ## Credits
 
-Designed by **[@diaawastaken](https://www.instagram.com/diaawastaken/)** on Instagram. If you build one, share it and tag me! ❤️
+Designed by **[@diaawastaken](https://www.instagram.com/diaawastaken/)** on Instagram. If you build one, share it and tag me for a shoutout! ❤️
