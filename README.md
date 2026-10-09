@@ -1,7 +1,7 @@
 # Portable Heart LED ❤️
 
 A rechargeable, battery-powered heart made of **16 LEDs** driven by an **Arduino Nano**.
-It has a push button for input, an on/off switch, USB charging and battery-level sensing, all on a single perfboard.
+A push button cycles through **6 light modes**. It also has an on/off switch, USB charging and a low-battery cutoff, all on a single perfboard.
 
 > 🎥 **Build video:** _link coming soon_
 
@@ -33,6 +33,7 @@ It has a push button for input, an on/off switch, USB charging and battery-level
 
 | File | What it is |
 | --- | --- |
+| [`firmware/heart_led_portable/heart_led_portable.ino`](firmware/heart_led_portable/heart_led_portable.ino) | Arduino sketch (6 light modes + battery check) |
 | [`schematic/heart_led_portable.pdf`](schematic/heart_led_portable.pdf) | Full schematic (KiCad) |
 | [`images/LED_position_map.png`](images/LED_position_map.png) | Where every LED goes, **seen from the back** of the board |
 | [`images/nano_pinout.png`](images/nano_pinout.png) | What connects to each Nano pin, **seen from the bottom** of the Nano |
@@ -57,8 +58,8 @@ flowchart LR
 - The **slide switch** turns everything on and off.
 - The **MT3608** boosts the battery's 3.0–4.2 V up to a steady **~5.1 V**, which goes straight into the Nano's **5V pin**.
 - Each of the **16 LEDs** has its own pin and its own **220 Ω** resistor, so every LED can be controlled on its own.
-- A **10 kΩ** resistor feeds the battery voltage into **A6**, so the code can read the battery level.
-- The **push button** on **D2** goes to GND (use `INPUT_PULLUP` in code).
+- A **10 kΩ** resistor feeds the battery voltage into **A6**. The code reads it and shuts the LEDs off before the battery gets too low.
+- The **push button** on **D2** goes to GND and switches between the light modes.
 
 ---
 
@@ -189,7 +190,7 @@ The other outer pin of the slide switch isn't used.
 1. Connect only the battery (or a 3.7 V source) to MT3608 **VIN+ / VIN−**.
 2. Put your multimeter on **VOUT+ / VOUT−**.
 3. Turn the small trimmer screw **counter-clockwise** to lower the voltage. It's a multi-turn trimmer, so it can take **10–20 turns** before the reading starts to move.
-4. Stop at **5.0–5.15 V**. The design uses **5.14 V**.
+4. Stop at **5.0–5.15 V**. The design uses **5.14 V**. Write down your reading, because it goes into `SUPPLY_V` in the code.
 5. Check it again after the whole power section is wired up.
 
 ### 3. Solder the headers onto the Nano
@@ -254,38 +255,63 @@ With the **Nano removed** from its headers:
 
 - Check the Nano's orientation: the **USB end** must line up with the **D12/D13** end you marked. **Plugging it in backwards can destroy it.**
 - Upload the code (see below), unplug USB, then flip the switch on.
+- The heart starts in **mode 1 (all off)**, so nothing lights up until you **press the button**.
 
 ---
 
 ## Programming the Nano
 
+The sketch is in [`firmware/heart_led_portable/heart_led_portable.ino`](firmware/heart_led_portable/heart_led_portable.ino). It doesn't need any extra libraries.
+
 1. Install the [Arduino IDE](https://www.arduino.cc/en/software).
-2. **Tools → Board → Arduino Nano**.
-3. **Tools → Processor:** most clones need **ATmega328P (Old Bootloader)**. If the upload fails, try the other option.
-4. Clones with a **CH340** USB chip may need the CH340 driver.
-5. **Turn the power switch OFF while the Nano is on USB.** That way the USB 5V and the boost converter's 5V aren't fighting each other.
+2. Download this repo (**Code → Download ZIP**) and open `firmware/heart_led_portable/heart_led_portable.ino`. Keep the `.ino` inside its `heart_led_portable` folder, because the Arduino IDE needs the folder and file names to match.
+3. **Tools → Board → Arduino Nano**.
+4. **Tools → Processor:** most clones need **ATmega328P (Old Bootloader)**. If the upload fails, try the other option.
+5. Clones with a **CH340** USB chip may need the CH340 driver.
+6. **Turn the power switch OFF while the Nano is on USB.** That way the USB 5V and the boost converter's 5V aren't fighting each other. The battery check knows when it's on USB and skips itself.
+7. Click **Upload**.
 
-### Pin definitions
+### Light modes
 
-```cpp
-// The 16 LEDs, clockwise around the heart as seen from the FRONT, starting at Top
-const uint8_t LED_PINS[16] = {
-  12,                          // Top
-  13, A0, A1, A2, A3, A4, A5,  // R1 … R7
-  4,                           // Btm
-  5, 6, 7, 8, 9, 10, 11        // L7 … L1
-};
+Each press of the button moves to the next mode, and after mode 6 it goes back to mode 1:
 
-const uint8_t BUTTON_PIN  = 2;   // button to GND: pinMode(BUTTON_PIN, INPUT_PULLUP), pressed = LOW
-const uint8_t BATTERY_PIN = A6;  // analog input only (A6/A7 can't be used as digital pins)
+| Mode | What it does |
+| :-: | --- |
+| 1 | All off (this is where it starts) |
+| 2 | Drop: lights travel from **Top** down both sides to **Btm**, one level at a time |
+| 3 | Alternating levels: even and odd levels flicker back and forth |
+| 4 | Chaser: one LED runs clockwise around the heart |
+| 5 | All LEDs blink on and off |
+| 6 | All LEDs on, steady |
 
-// Battery voltage: A6 reads the LiPo directly, measured against the ~5.1 V rail.
-// float vbat = analogRead(BATTERY_PIN) * 5.14 / 1023.0;  // ~4.2 V full, ~3.3 V time to charge
-```
+The button uses an interrupt, so it reacts immediately even in the middle of an animation.
 
-> [!NOTE]
-> The battery reading uses the 5V rail as its reference, so it's only as accurate as your MT3608 setting.
-> If you set it to something other than 5.14 V, put your measured value in the formula.
+### Low-battery cutoff
+
+The sketch measures the battery on **A6** once a second. If it stays below **3.3 V** for 5 checks in a row, it turns all the LEDs off and briefly **flashes the Btm LED every 3 seconds**. That means **switch it off and charge it**. The Nano and the boost converter still draw a little power in this state, so don't leave it like that.
+
+### Settings you can change
+
+All of these are near the top of the sketch:
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `SUPPLY_V` | `5.14` | The voltage on your Nano's 5V pin. **Set this to what you measured on your MT3608** or the battery reading will be off |
+| `LOW_BATTERY_V` | `3.30` | Battery voltage where the cutoff kicks in |
+| `stage2Speed`, `stage3Speed`, `clockwiseSpeed`, `blinkSpeed` | 130 / 250 / 90 / 600 ms | Animation speeds (lower = faster) |
+| `DEBUG_BATTERY` | `0` | Set to `1` to print the battery voltage in the Serial Monitor (9600 baud). The power switch must be ON for it to read the battery |
+
+### Pin map used in the code
+
+| Code | Pins |
+| --- | --- |
+| `topLed` / `bottomLed` | D12 / D4 |
+| `leftSide[]` (L1 → L7) | D11, D10, D9, D8, D7, D6, D5 |
+| `rightSide[]` (R1 → R7) | D13, A0, A1, A2, A3, A4, A5 |
+| `buttonPin` | D2 (`INPUT_PULLUP`, other leg to GND) |
+| `batteryPin` | A6 (through the 10 kΩ resistor) |
+
+If you change any wiring, change these lines to match.
 
 ---
 
@@ -317,7 +343,7 @@ const uint8_t BATTERY_PIN = A6;  // analog input only (A6/A7 can't be used as di
 ### LED current
 
 - With 220 Ω at 5 V, each LED draws about **9–14 mA** depending on its colour. Red and yellow draw the most.
-- With all 16 at full brightness, red LEDs add up to over 200 mA, which is around the ATmega328P's total current limit. If your code keeps every LED fully on for long stretches, use **PWM / lower brightness** or **330 Ω** resistors for red/yellow LEDs.
+- Modes 5 and 6 light all 16 LEDs at once. With red LEDs that adds up to over 200 mA, which is around the ATmega328P's total current limit. If you use red or yellow LEDs and like to leave it on mode 6, use **330 Ω** resistors to keep the current down.
 
 ### Pins
 
@@ -331,13 +357,15 @@ const uint8_t BATTERY_PIN = A6;  // analog input only (A6/A7 can't be used as di
 
 | Problem | What to check |
 | --- | --- |
-| Nothing turns on | Is the switch on? Is the battery charged? Do you read ~5.1 V on the 5V socket? Is the Nano plugged in the right way round? |
+| Nothing lights up after switching on | That's normal: it starts in **mode 1 (all off)**. Press the button |
+| Still nothing after pressing the button | Is the battery charged? Do you read ~5.1 V on the 5V socket? Is the Nano plugged in the right way round? Was the sketch uploaded? |
+| All LEDs go off and Btm flashes every 3 s | **Low battery.** Switch off and charge it |
 | One LED never lights | It's probably **backwards** (long leg must go to the resistor), has a cold joint, or is a dead LED. Use the jumper test from [step 10](#10-check-everything-before-plugging-in-the-nano) |
 | The wrong LED lights up | **Mirrored wiring.** Compare against the map, which is a **back view** |
 | LEDs flicker or the Nano resets | The battery is low (charge it) or the MT3608 is set too low. Measure the 5V pin while the LEDs are on |
-| The button does nothing | Use `INPUT_PULLUP` in code. On a 4-leg button use **diagonal** legs |
+| The button doesn't change modes | Check the button goes from **D2** to **GND**. On a 4-leg button use **diagonal** legs |
 | Upload fails | Try **ATmega328P (Old Bootloader)**, install the CH340 driver, use a USB **data** cable (not charge-only), switch the power OFF |
-| Battery reading is way off | Put your actual 5V-rail voltage in the formula, and check the 10 kΩ goes to the **switched** side (MT3608 VIN+) |
+| Cutoff kicks in too early or too late | Set `SUPPLY_V` in the sketch to your measured 5V-pin voltage, and check the 10 kΩ goes to the **switched** side (MT3608 VIN+). Use `DEBUG_BATTERY 1` to see the reading |
 | TP4056 LED never shows "full" | Switch the heart **OFF** while charging |
 
 ---
