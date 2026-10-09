@@ -24,6 +24,7 @@ A push button cycles through **6 light modes**. It also has an on/off switch, US
 - [Tips so you don't mess it up](#tips-so-you-dont-mess-it-up)
 - [Troubleshooting](#troubleshooting)
 - [Credits](#credits)
+- [License](#license)
 
 ---
 
@@ -371,3 +372,17 @@ If you change any wiring, change these lines to match.
 ## Credits
 
 Designed by **[@diaawastaken](https://www.instagram.com/diaawastaken/)** on Instagram. If you build one, share it and tag me for a shoutout! ❤️
+
+---
+
+## License
+
+Each part of the project uses the license that fits it:
+
+| Part | License | File |
+| --- | --- | --- |
+| Firmware ([`firmware/`](firmware/)) | [MIT](https://opensource.org/license/mit) | [`LICENSE-FIRMWARE`](LICENSE-FIRMWARE) |
+| Hardware design ([`schematic/`](schematic/)) | [CERN-OHL-P v2](https://ohwr.org/cern_ohl_p_v2.txt) | [`LICENSE-HARDWARE`](LICENSE-HARDWARE) |
+| Docs and images (this README, [`images/`](images/)) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [`LICENSE-DOCS`](LICENSE-DOCS) |
+
+**In short:** you're free to build it, change it, share it and use it in your own projects, as long as you keep the credit to **@diaawastaken**. See each license file for the full terms.
