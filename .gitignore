@@ -1,6 +1,5 @@
-# Original chat screenshots (replaced by clean versions in images/)
-LED_position_map.jpeg
-nano_pinout.jpeg
+# Original source files (chat screenshots, full-size photos), kept locally only
+_originals/
 
 # OS / editor junk
 Thumbs.db

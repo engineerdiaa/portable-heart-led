@@ -1,12 +1,14 @@
 # Portable Heart LED ❤️
 
-A rechargeable, battery-powered heart made of **16 LEDs** driven by an **Arduino Nano**.
-A push button cycles through **6 light modes**. It also has an on/off switch, USB charging and a low-battery cutoff, all on a single perfboard.
+**An over-engineered LED heart keychain.** It has 16 LEDs, an Arduino Nano, a rechargeable LiPo and a USB charger, all on a 50 × 70 mm perfboard.
+A push button cycles through **6 light modes**. It also has an on/off switch and a low-battery cutoff.
 
 <p align="center">
-  <img src="images/LED_position_map.png" width="420" alt="LED position map">
+  <img src="images/keychain_front.jpg" width="380" alt="Front of the keychain: 16-LED heart, Arduino Nano and push button">
   &nbsp;
-  <img src="images/nano_pinout.png" width="420" alt="Arduino Nano pinout">
+  <img src="images/keychain_back.jpg" width="380" alt="Back of the keychain: TP4056 charger, MT3608 boost converter, LiPo battery, slide switch and wiring">
+  <br>
+  <sub><b>Front:</b> LEDs, Nano and mode button &nbsp;·&nbsp; <b>Back:</b> charger, boost converter, battery, switch and wiring</sub>
 </p>
 
 ---
@@ -17,6 +19,7 @@ A push button cycles through **6 light modes**. It also has an on/off switch, US
 - [How it works](#how-it-works)
 - [Parts list](#parts-list)
 - [Tools](#tools)
+- [Board layout](#board-layout)
 - [Reference diagrams](#reference-diagrams)
 - [Wiring tables](#wiring-tables)
 - [Build steps](#build-steps)
@@ -35,7 +38,9 @@ A push button cycles through **6 light modes**. It also has an on/off switch, US
 | [`firmware/heart_led_portable/heart_led_portable.ino`](firmware/heart_led_portable/heart_led_portable.ino) | Arduino sketch (6 light modes + battery check) |
 | [`schematic/heart_led_portable.pdf`](schematic/heart_led_portable.pdf) | Full schematic (KiCad) |
 | [`images/LED_position_map.png`](images/LED_position_map.png) | Where every LED goes, **seen from the back** of the board |
-| [`images/nano_pinout.png`](images/nano_pinout.png) | What connects to each Nano pin, **seen from the bottom** of the Nano |
+| [`images/nano_pinout.png`](images/nano_pinout.png) | What connects to each Nano pin, **seen from the back** of the board |
+| [`images/keychain_front.jpg`](images/keychain_front.jpg), [`images/keychain_back.jpg`](images/keychain_back.jpg) | Photos of the finished keychain |
+| `LICENSE-*` | Licenses (see [License](#license)) |
 
 ---
 
@@ -67,16 +72,17 @@ flowchart LR
 | Qty | Part | Notes |
 | :-: | --- | --- |
 | 1 | Arduino Nano (ATmega328P) | A clone is fine. Get one with **headers not soldered** if you can, or use the ones it ships with |
-| 2 | 15-pin **female** header strips | The Nano plugs into these. **Don't solder the Nano straight to the board** |
-| 16 | LEDs (3 mm or 5 mm) | Any colour |
+| 2 | 15-pin **female** header strips | The Nano plugs into these. **Don't solder the Nano straight to the board.** Low-profile (round-pin) headers keep the keychain thinner |
+| 16 | LEDs (3 mm or 5 mm) | Any colour. The keychain uses 5 mm |
 | 16 | 220 Ω resistors | One per LED |
 | 1 | 10 kΩ resistor | Battery sense on A6 |
-| 1 | Tactile push button | |
-| 1 | SPDT slide switch | On/off |
-| 1 | TP4056 charger module **with protection** | The one with **6 pads** (IN+/IN−, B+/B−, **OUT+/OUT−**). The 4-pad version has no battery protection |
+| 1 | 6 × 6 mm tactile push button | Changes the light mode |
+| 1 | Small SPDT slide switch | On/off |
+| 1 | TP4056 charger module **with protection** | The one with **6 pads** (IN+/IN−, B+/B−, **OUT+/OUT−**). The 4-pad version has no battery protection. USB-C or micro-USB both work |
 | 1 | MT3608 boost converter module | Set to **5.1 V** before you connect it (see step 2) |
-| 1 | 3.7 V single-cell LiPo | Any size that fits. Read the [charging tip](#power-and-battery) if it's under 1000 mAh |
-| 1 | Perfboard / protoboard | Big enough for the heart |
+| 1 | 3.7 V single-cell LiPo | Small enough to fit behind the board. **Read the [charging tip](#power-and-battery)**, because small batteries need a lower charge current |
+| 1 | 50 × 70 mm double-sided perfboard | The size the keychain uses |
+| 1 | Keyring + small chain or jump ring | Goes through a corner hole of the perfboard |
 | — | Wire | Thin solid-core wire for the board, silicone wire for the battery and modules |
 
 ## Tools
@@ -87,6 +93,32 @@ flowchart LR
 - Small screwdriver for the MT3608 trimmer
 - Helping hands or a PCB holder
 - Optional: a breadboard (to hold the Nano's pins straight while you solder them), a fine marker, Kapton tape or heat-shrink
+
+---
+
+## Board layout
+
+This is how the keychain in the photos is laid out on the 50 × 70 mm perfboard:
+
+**Front**
+- The 16 LEDs form the heart in the upper part of the board.
+- The push button sits next to the heart.
+- The Arduino Nano runs along the bottom edge, **with its USB port on the left**.
+- The keyring goes through a top corner hole.
+
+**Back**
+- All the wiring and the 17 resistors.
+- The TP4056 charger, the MT3608 boost converter, the LiPo and the slide switch.
+
+> [!TIP]
+> **Mount the Nano the same way:** on the front, along the bottom, USB on the left. Then the [pinout diagram](#nano-pinout-seen-from-the-back) matches exactly what you see on the back of the board. If you turn the Nano around, the diagram won't match anymore.
+
+Keychain-specific tips:
+- Put the **TP4056's USB port at the board edge** so you can plug a cable in.
+- Put the **slide switch at an edge** so you can reach it without taking anything apart.
+- **Set the MT3608 voltage before you mount it.** The trimmer can be hard to reach afterwards.
+- **Protect the battery.** A keychain gets knocked around, and a trimmed lead or sharp solder joint can puncture a pouch cell. Cover the back with Kapton tape where the battery sits, and stick the battery down with double-sided tape.
+- Keep the corner hole for the keyring free of wires and solder.
 
 ---
 
@@ -103,13 +135,13 @@ flowchart LR
 > **L** and **R** are named as seen from the **front**. So from the back, the **L LEDs (D5–D11) are on your right** and the **R LEDs (D13, A0–A5) are on your left**.
 > The number counts along that side of the heart, starting from the LED next to **Top**.
 
-### Nano pinout (seen from the BOTTOM)
+### Nano pinout (seen from the BACK)
 
-<p align="center"><img src="images/nano_pinout.png" width="720" alt="Arduino Nano bottom-view pinout"></p>
+<p align="center"><img src="images/nano_pinout.png" width="720" alt="Arduino Nano pinout as seen from the back of the board"></p>
 
 > [!IMPORTANT]
-> This is the Nano seen from its **bottom**, so it's **mirrored** compared to the labels printed on top.
-> With the USB connector on the **right**, **D12** and **D13** are the pins right next to it.
+> This is what you see on the **back of the board**, behind the Nano. The Nano is mounted on the front with its USB port on the left, as in the [layout](#board-layout).
+> Because you're looking at the Nano from underneath, it's **mirrored** compared to the labels printed on top of it: from the back, the USB end is on the **right**, and **D12** and **D13** are the pins right next to it.
 > Before you solder anything, check this against the labels printed on your own Nano.
 
 | Colour | Meaning |
@@ -208,6 +240,7 @@ If your Nano came with loose header pins:
 > - You can **test all the wiring with the Nano removed** (see step 10).
 > - A mistake costs you a cheap header, not the Nano.
 
+- Put the headers on the **front**, along the bottom edge, so the Nano sits with its **USB port on the left** (see [Board layout](#board-layout)).
 - Plug the Nano into the female headers **before** you solder them. It acts as a jig and keeps the two rows lined up perfectly. Tack one pin at each end, take the Nano out, then solder the rest.
 - Use a fine marker on the back of the board to label the **USB end**, the **5V** and **GND** sockets, **D2** and **D13**. Once the Nano is plugged in you can't see the labels anymore.
 
@@ -320,7 +353,8 @@ If you change any wiring, change these lines to match.
 
 - ⚠️ **Set the MT3608 to 5.1 V before connecting the Nano.** This is the #1 way people kill their Nano. ([step 2](#2-set-the-mt3608-to-51-v-before-connecting-anything-to-it))
 - 🔌 **Use female headers, don't solder the Nano in.** ([step 4](#4-solder-female-headers-to-the-board-then-plug-the-nano-into-them))
-- 🔄 **Remember the mirror.** Both diagrams are drawn from underneath: the LED map from the **back of the board**, the pinout from the **bottom of the Nano**. Most "wrong LED lights up" problems come from forgetting this.
+- 🔄 **Remember the mirror.** Both diagrams show the **back of the board**, where you solder. Most "wrong LED lights up" problems come from forgetting this.
+- 🔋 **Lower the TP4056 charge current for small batteries.** Keychain-size LiPos can't take the default 1 A. ([details](#power-and-battery))
 - ↕️ **Get the Nano the right way round.** USB goes at the D12/D13 end. Mark it on the board.
 - ➕ **Check LED polarity:** long leg = **+** (to the resistor), short leg / flat side = **−** (to GND).
 
@@ -329,7 +363,15 @@ If you change any wiring, change these lines to match.
 - Feed the boost output into the **5V pin, not VIN**. VIN goes through a regulator that needs 7 V or more, so 5 V into VIN won't run the Nano properly.
 - Charge through the **TP4056's USB port**. The Nano's USB port does **not** charge the battery.
 - Charge with the switch **OFF** if you can. If the Nano is drawing power while charging, the TP4056 may never see the battery as full.
-- The TP4056 charges at **1 A** by default. For a battery **under ~1000 mAh**, lower the current by swapping the module's R_PROG resistor (usually marked **R3**, 1.2 kΩ). For example **2.4 kΩ ≈ 500 mA** and **4 kΩ ≈ 300 mA**.
+- The TP4056 charges at **1 A** by default, which is too much for the small LiPos that fit in a keychain. A safe rule is to keep the charge current **at or below the battery's capacity** (for example, 300 mA or less for a 300 mAh battery). To lower it, swap the module's R_PROG resistor (usually marked **R3**, 1.2 kΩ):
+
+  | Battery | R_PROG | Charge current |
+  | --- | --- | --- |
+  | ~1000 mAh or more | 1.2 kΩ (default) | ~1 A |
+  | ~500 mAh | 2.4 kΩ | ~500 mA |
+  | ~300 mAh | 4 kΩ | ~300 mA |
+  | ~250 mAh | 5 kΩ | ~250 mA |
+  | ~130 mAh | 10 kΩ | ~130 mA |
 - When you strip or cut the battery leads, **do one wire at a time** so they never touch. A shorted LiPo gets dangerously hot.
 - Put Kapton tape or heat-shrink on the back of the TP4056 and MT3608 if they sit against the board or the battery.
 
