@@ -3,8 +3,6 @@
 A rechargeable, battery-powered heart made of **16 LEDs** driven by an **Arduino Nano**.
 A push button cycles through **6 light modes**. It also has an on/off switch, USB charging and a low-battery cutoff, all on a single perfboard.
 
-> 🎥 **Build video:** _link coming soon_
-
 <p align="center">
   <img src="images/LED_position_map.png" width="420" alt="LED position map">
   &nbsp;
@@ -372,4 +370,4 @@ If you change any wiring, change these lines to match.
 
 ## Credits
 
-Designed by **@diaawastaken**. If you build one, share it and tag me! ❤️
+Designed by **[@diaawastaken](https://www.instagram.com/diaawastaken/)** on Instagram. If you build one, share it and tag me! ❤️
