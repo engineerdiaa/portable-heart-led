@@ -30,15 +30,21 @@ const unsigned long CHECK_INTERVAL = 1000; // ms between battery checks
 #define DEBUG_BATTERY 0  // Set to 1 to print battery voltage in the Serial Monitor (9600 baud)
 
 // --- STATE VARIABLES ---
+const int numStages = 7;
 volatile int stage = 1;
 volatile bool stageChanged = false;
 volatile unsigned long lastButtonPress = 0;
+
+// Stage 7 (auto mode) bookkeeping
+bool autoMode = false;            // True while stage 7 is playing one of the patterns
+unsigned long patternStart = 0;   // When the current auto-mode pattern started (ms)
 
 // Animation speeds (milliseconds) - SPLIT FOR INDEPENDENT CONTROL
 const int stage2Speed = 130;    // Tuned for the top-to-bottom drop
 const int stage3Speed = 250;    // Slower for the binary alternating flicker
 const int clockwiseSpeed = 90;
 const int blinkSpeed = 600;
+const unsigned long autoPatternTime = 4000; // Stage 7: how long each pattern plays before the next one
 
 void setup() {
   // Initialize all LEDs as outputs and turn them off
@@ -60,14 +66,18 @@ void setup() {
 
 void loop() {
   stageChanged = false; // Reset the flag before entering a stage
+  runStage(stage);
+}
 
-  switch (stage) {
+void runStage(int s) {
+  switch (s) {
     case 1: stage1(); break;
     case 2: stage2(); break;
     case 3: stage3(); break;
     case 4: stage4(); break;
     case 5: stage5(); break;
     case 6: stage6(); break;
+    case 7: stage7(); break;
   }
 }
 
@@ -77,7 +87,7 @@ void buttonISR() {
   // 200ms debounce window
   if (currentMillis - lastButtonPress > 200) {
     stage++;
-    if (stage > 6) {
+    if (stage > numStages) {
       stage = 1;
     }
     lastButtonPress = currentMillis;
@@ -140,14 +150,22 @@ void lowBatteryShutdown() {
 }
 
 // --- SMART DELAY ---
-// Allows animations to pause, but breaks out IMMEDIATELY if the button is pressed.
+// Allows animations to pause, but breaks out IMMEDIATELY if the button is pressed
+// (or when the pattern's time is up in auto mode).
 // Also runs the battery check in the background.
 void smartDelay(unsigned long ms) {
   unsigned long start = millis();
   while (millis() - start < ms) {
     checkBattery();
-    if (stageChanged) return;
+    if (shouldStop()) return;
   }
+}
+
+// True when the current animation should end: the button was pressed,
+// or (in auto mode) the pattern has played for autoPatternTime.
+bool shouldStop() {
+  if (stageChanged) return true;
+  return autoMode && (millis() - patternStart >= autoPatternTime);
 }
 
 // --- HELPER FUNCTIONS ---
@@ -190,26 +208,26 @@ void stage1() {
 
 // Stage 2: Top to bottom pairs
 void stage2() {
-  while (!stageChanged) {
+  while (!shouldStop()) {
     for (int i = 0; i <= 8; i++) { // 9 total vertical levels (0 to 8)
       turnAllOff();
       lightLevel(i);
       smartDelay(stage2Speed);
-      if (stageChanged) return;
+      if (shouldStop()) return;
     }
   }
 }
 
 // Stage 3: Alternating Binary Flow
 void stage3() {
-  while (!stageChanged) {
+  while (!shouldStop()) {
     // Frame 1: Turn ON all "Even" levels (0, 2, 4, 6, 8)
     turnAllOff();
     for (int i = 0; i <= 8; i += 2) {
       lightLevel(i);
     }
     smartDelay(stage3Speed);
-    if (stageChanged) return;
+    if (shouldStop()) return;
 
     // Frame 2: Turn ON all "Odd" levels (1, 3, 5, 7)
     turnAllOff();
@@ -217,38 +235,52 @@ void stage3() {
       lightLevel(i);
     }
     smartDelay(stage3Speed);
-    if (stageChanged) return;
+    if (shouldStop()) return;
   }
 }
 
 // Stage 4: Chaser going clockwise around the heart
 void stage4() {
-  while (!stageChanged) {
+  while (!shouldStop()) {
     for (int i = 0; i < numTotalLeds; i++) {
       turnAllOff();
       digitalWrite(clockwisePath[i], HIGH);
       smartDelay(clockwiseSpeed);
-      if (stageChanged) return;
+      if (shouldStop()) return;
     }
   }
 }
 
 // Stage 5: All ON / All OFF
 void stage5() {
-  while (!stageChanged) {
+  while (!shouldStop()) {
     turnAllOn();
     smartDelay(blinkSpeed);
-    if (stageChanged) return;
+    if (shouldStop()) return;
     turnAllOff();
     smartDelay(blinkSpeed);
-    if (stageChanged) return;
+    if (shouldStop()) return;
   }
 }
 
 // Stage 6: All ON steady
 void stage6() {
   turnAllOn();
-  while (!stageChanged) {
+  while (!shouldStop()) {
     smartDelay(10); // Battery check keeps running
+  }
+}
+
+// Stage 7: Auto mode - plays stages 2 to 6 on a loop, autoPatternTime each,
+// until the button is pressed (which wraps around to stage 1: all OFF)
+void stage7() {
+  while (!stageChanged) {
+    for (int s = 2; s <= 6; s++) {
+      autoMode = true;
+      patternStart = millis();
+      runStage(s);              // Returns when its time is up or the button is pressed
+      autoMode = false;
+      if (stageChanged) return;
+    }
   }
 }

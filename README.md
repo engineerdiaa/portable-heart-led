@@ -1,7 +1,7 @@
 # Portable Heart LED ❤️
 
 **An over-engineered LED heart keychain.** It has 16 LEDs, an Arduino Nano, a rechargeable LiPo and a USB charger, all on a 50 × 70 mm perfboard.
-A push button cycles through **6 light modes**. It also has an on/off switch and a low-battery cutoff.
+A push button cycles through **7 light modes**. It also has an on/off switch and a low-battery cutoff.
 
 <p align="center">
   <img src="images/keychain_front.jpg" width="380" alt="Front of the keychain: 16-LED heart, Arduino Nano and push button">
@@ -35,7 +35,7 @@ A push button cycles through **6 light modes**. It also has an on/off switch and
 
 | File | What it is |
 | --- | --- |
-| [`firmware/heart_led_portable/heart_led_portable.ino`](firmware/heart_led_portable/heart_led_portable.ino) | Arduino sketch (6 light modes + battery check) |
+| [`firmware/heart_led_portable/heart_led_portable.ino`](firmware/heart_led_portable/heart_led_portable.ino) | Arduino sketch (7 light modes + battery check) |
 | [`schematic/heart_led_portable.pdf`](schematic/heart_led_portable.pdf) | Full schematic (KiCad) |
 | [`images/LED_position_map.png`](images/LED_position_map.png) | Where every LED goes, **seen from the back** of the board |
 | [`images/nano_pinout.png`](images/nano_pinout.png) | What connects to each Nano pin, **seen from the back** of the board |
@@ -305,7 +305,7 @@ The sketch is in [`firmware/heart_led_portable/heart_led_portable.ino`](firmware
 
 ### Light modes
 
-Each press of the button moves to the next mode, and after mode 6 it goes back to mode 1:
+Each press of the button moves to the next mode, and after mode 7 it goes back to mode 1:
 
 | Mode | What it does |
 | :-: | --- |
@@ -315,6 +315,7 @@ Each press of the button moves to the next mode, and after mode 6 it goes back t
 | 4 | Chaser: one LED runs clockwise around the heart |
 | 5 | All LEDs blink on and off |
 | 6 | All LEDs on, steady |
+| 7 | Auto: plays modes 2 → 6 on a loop, **4 seconds each**, until you press the button again (which turns it off) |
 
 The button uses an interrupt, so it reacts immediately even in the middle of an animation.
 
@@ -331,6 +332,7 @@ All of these are near the top of the sketch:
 | `SUPPLY_V` | `5.14` | The voltage on your Nano's 5V pin. **Set this to what you measured on your MT3608** or the battery reading will be off |
 | `LOW_BATTERY_V` | `3.30` | Battery voltage where the cutoff kicks in |
 | `stage2Speed`, `stage3Speed`, `clockwiseSpeed`, `blinkSpeed` | 130 / 250 / 90 / 600 ms | Animation speeds (lower = faster) |
+| `autoPatternTime` | 4000 ms | How long each pattern plays in mode 7 before switching to the next one |
 | `DEBUG_BATTERY` | `0` | Set to `1` to print the battery voltage in the Serial Monitor (9600 baud). The power switch must be ON for it to read the battery |
 
 ### Pin map used in the code
@@ -384,7 +386,7 @@ If you change any wiring, change these lines to match.
 ### LED current
 
 - With 220 Ω at 5 V, each LED draws about **9–14 mA** depending on its colour. Red and yellow draw the most.
-- Modes 5 and 6 light all 16 LEDs at once. With red LEDs that adds up to over 200 mA, which is around the ATmega328P's total current limit. If you use red or yellow LEDs and like to leave it on mode 6, use **330 Ω** resistors to keep the current down.
+- Modes 5 and 6 (and mode 7 when it reaches them) light all 16 LEDs at once. With red LEDs that adds up to over 200 mA, which is around the ATmega328P's total current limit. If you use red or yellow LEDs and like to leave it on mode 6, use **330 Ω** resistors to keep the current down.
 
 ### Pins
 
