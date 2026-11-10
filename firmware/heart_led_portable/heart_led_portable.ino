@@ -45,7 +45,6 @@ const int stage3Speed = 250;    // Slower for the binary alternating flicker
 const int clockwiseSpeed = 90;
 const int blinkSpeed = 600;
 const int fillSpeed = 150;      // Stage 6: time between each new pair lighting up
-const int fillHold = 500;       // Stage 6: how long the full heart stays lit before it restarts
 const unsigned long autoPatternTime = 4000; // Stage 9: how long each pattern plays before the next one
 
 void setup() {
@@ -268,7 +267,7 @@ void stage5() {
 }
 
 // Stage 6: Fill - Top first, then one pair at a time down both sides,
-// each staying lit until the Bottom LED completes the heart, then repeat
+// each staying lit until the Bottom LED completes the heart, then restart right away
 void stage6() {
   while (!shouldStop()) {
     turnAllOff();
@@ -277,8 +276,6 @@ void stage6() {
       smartDelay(fillSpeed);
       if (shouldStop()) return;
     }
-    smartDelay(fillHold);           // Full heart
-    if (shouldStop()) return;
   }
 }
 
