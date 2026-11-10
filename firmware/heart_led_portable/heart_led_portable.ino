@@ -30,13 +30,13 @@ const unsigned long CHECK_INTERVAL = 1000; // ms between battery checks
 #define DEBUG_BATTERY 0  // Set to 1 to print battery voltage in the Serial Monitor (9600 baud)
 
 // --- STATE VARIABLES ---
-const int numStages = 7;
+const int numStages = 8;
 volatile int stage = 1;
 volatile bool stageChanged = false;
 volatile unsigned long lastButtonPress = 0;
 
-// Stage 7 (auto mode) bookkeeping
-bool autoMode = false;            // True while stage 7 is playing one of the patterns
+// Stage 8 (auto mode) bookkeeping
+bool autoMode = false;            // True while stage 8 is playing one of the patterns
 unsigned long patternStart = 0;   // When the current auto-mode pattern started (ms)
 
 // Animation speeds (milliseconds) - SPLIT FOR INDEPENDENT CONTROL
@@ -44,7 +44,9 @@ const int stage2Speed = 130;    // Tuned for the top-to-bottom drop
 const int stage3Speed = 250;    // Slower for the binary alternating flicker
 const int clockwiseSpeed = 90;
 const int blinkSpeed = 600;
-const unsigned long autoPatternTime = 4000; // Stage 7: how long each pattern plays before the next one
+const int fillSpeed = 150;      // Stage 7: time between each new pair lighting up
+const int fillHold = 500;       // Stage 7: how long the full heart stays lit before it restarts
+const unsigned long autoPatternTime = 4000; // Stage 8: how long each pattern plays before the next one
 
 void setup() {
   // Initialize all LEDs as outputs and turn them off
@@ -78,6 +80,7 @@ void runStage(int s) {
     case 5: stage5(); break;
     case 6: stage6(); break;
     case 7: stage7(); break;
+    case 8: stage8(); break;
   }
 }
 
@@ -271,11 +274,26 @@ void stage6() {
   }
 }
 
-// Stage 7: Auto mode - plays stages 2 to 6 on a loop, autoPatternTime each,
-// until the button is pressed (which wraps around to stage 1: all OFF)
+// Stage 7: Fill - Top first, then one pair at a time down both sides,
+// each staying lit until the Bottom LED completes the heart, then repeat
 void stage7() {
+  while (!shouldStop()) {
+    turnAllOff();
+    for (int i = 0; i <= 8; i++) { // Top (0), pairs (1-7), Bottom (8)
+      lightLevel(i);
+      smartDelay(fillSpeed);
+      if (shouldStop()) return;
+    }
+    smartDelay(fillHold);           // Full heart
+    if (shouldStop()) return;
+  }
+}
+
+// Stage 8: Auto mode - plays stages 2 to 7 on a loop, autoPatternTime each,
+// until the button is pressed (which wraps around to stage 1: all OFF)
+void stage8() {
   while (!stageChanged) {
-    for (int s = 2; s <= 6; s++) {
+    for (int s = 2; s <= 7; s++) {
       autoMode = true;
       patternStart = millis();
       runStage(s);              // Returns when its time is up or the button is pressed
