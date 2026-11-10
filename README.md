@@ -314,10 +314,10 @@ Each press of the button moves to the next mode, and after mode 9 it goes back t
 | 3 | Alternating levels: even and odd levels flicker back and forth |
 | 4 | Chaser: one LED runs clockwise around the heart |
 | 5 | All LEDs blink on and off |
-| 6 | All LEDs on, steady |
-| 7 | Fill: **Top** lights first, then one pair at a time down both sides, each staying on until **Btm** completes the heart, then it starts over |
-| 8 | Rise: lights travel from **Btm** up both sides to **Top**, one level at a time (mode 2 in reverse) |
-| 9 | Auto: plays modes 2, 3, 4, 5, 7 and 8 on a loop, **4 seconds each**, until you press the button again (which turns it off) |
+| 6 | Fill: **Top** lights first, then one pair at a time down both sides, each staying on until **Btm** completes the heart, then it starts over |
+| 7 | Rise: lights travel from **Btm** up both sides to **Top**, one level at a time (mode 2 in reverse) |
+| 8 | All LEDs on, steady |
+| 9 | Auto: plays modes 2 → 7 on a loop, **4 seconds each**, until you press the button again (which turns it off) |
 
 The button uses an interrupt, so it reacts immediately even in the middle of an animation.
 
@@ -334,7 +334,7 @@ All of these are near the top of the sketch:
 | `SUPPLY_V` | `5.14` | The voltage on your Nano's 5V pin. **Set this to what you measured on your MT3608** or the battery reading will be off |
 | `LOW_BATTERY_V` | `3.30` | Battery voltage where the cutoff kicks in |
 | `stage2Speed`, `stage3Speed`, `clockwiseSpeed`, `blinkSpeed` | 130 / 250 / 90 / 600 ms | Animation speeds (lower = faster) |
-| `fillSpeed`, `fillHold` | 150 / 500 ms | Mode 7: time between pairs, and how long the full heart stays lit |
+| `fillSpeed`, `fillHold` | 150 / 500 ms | Mode 6: time between pairs, and how long the full heart stays lit |
 | `autoPatternTime` | 4000 ms | How long each pattern plays in mode 9 before switching to the next one |
 | `DEBUG_BATTERY` | `0` | Set to `1` to print the battery voltage in the Serial Monitor (9600 baud). The power switch must be ON for it to read the battery |
 
@@ -389,7 +389,7 @@ If you change any wiring, change these lines to match.
 ### LED current
 
 - With 220 Ω at 5 V, each LED draws about **9–14 mA** depending on its colour. Red and yellow draw the most.
-- Modes 5, 6 and 7 (and mode 9 when it plays 5 or 7) light all 16 LEDs at once. With red LEDs that adds up to over 200 mA, which is around the ATmega328P's total current limit. If you use red or yellow LEDs and like to leave it on mode 6, use **330 Ω** resistors to keep the current down.
+- Modes 5, 6 and 8 (and mode 9 when it plays 5 or 6) light all 16 LEDs at once. With red LEDs that adds up to over 200 mA, which is around the ATmega328P's total current limit. If you use red or yellow LEDs and like to leave it on mode 8, use **330 Ω** resistors to keep the current down.
 
 ### Pins
 

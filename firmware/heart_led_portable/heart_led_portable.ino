@@ -44,8 +44,8 @@ const int stage2Speed = 130;    // Tuned for the top-to-bottom drop
 const int stage3Speed = 250;    // Slower for the binary alternating flicker
 const int clockwiseSpeed = 90;
 const int blinkSpeed = 600;
-const int fillSpeed = 150;      // Stage 7: time between each new pair lighting up
-const int fillHold = 500;       // Stage 7: how long the full heart stays lit before it restarts
+const int fillSpeed = 150;      // Stage 6: time between each new pair lighting up
+const int fillHold = 500;       // Stage 6: how long the full heart stays lit before it restarts
 const unsigned long autoPatternTime = 4000; // Stage 9: how long each pattern plays before the next one
 
 void setup() {
@@ -267,17 +267,9 @@ void stage5() {
   }
 }
 
-// Stage 6: All ON steady
-void stage6() {
-  turnAllOn();
-  while (!shouldStop()) {
-    smartDelay(10); // Battery check keeps running
-  }
-}
-
-// Stage 7: Fill - Top first, then one pair at a time down both sides,
+// Stage 6: Fill - Top first, then one pair at a time down both sides,
 // each staying lit until the Bottom LED completes the heart, then repeat
-void stage7() {
+void stage6() {
   while (!shouldStop()) {
     turnAllOff();
     for (int i = 0; i <= 8; i++) { // Top (0), pairs (1-7), Bottom (8)
@@ -290,8 +282,8 @@ void stage7() {
   }
 }
 
-// Stage 8: Bottom to top pairs (stage 2 in reverse)
-void stage8() {
+// Stage 7: Bottom to top pairs (stage 2 in reverse)
+void stage7() {
   while (!shouldStop()) {
     for (int i = 8; i >= 0; i--) { // Bottom (8) up to Top (0)
       turnAllOff();
@@ -302,8 +294,16 @@ void stage8() {
   }
 }
 
-// Stages played by auto mode, in order (stage 6, all ON steady, is left out)
-const int autoStages[] = {2, 3, 4, 5, 7, 8};
+// Stage 8: All ON steady
+void stage8() {
+  turnAllOn();
+  while (!shouldStop()) {
+    smartDelay(10); // Battery check keeps running
+  }
+}
+
+// Stages played by auto mode, in order (stage 8, all ON steady, is left out)
+const int autoStages[] = {2, 3, 4, 5, 6, 7};
 const int numAutoStages = sizeof(autoStages) / sizeof(autoStages[0]);
 
 // Stage 9: Auto mode - plays the autoStages on a loop, autoPatternTime each,
