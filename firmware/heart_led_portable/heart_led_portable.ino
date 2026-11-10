@@ -30,13 +30,13 @@ const unsigned long CHECK_INTERVAL = 1000; // ms between battery checks
 #define DEBUG_BATTERY 0  // Set to 1 to print battery voltage in the Serial Monitor (9600 baud)
 
 // --- STATE VARIABLES ---
-const int numStages = 8;
+const int numStages = 9;
 volatile int stage = 1;
 volatile bool stageChanged = false;
 volatile unsigned long lastButtonPress = 0;
 
-// Stage 8 (auto mode) bookkeeping
-bool autoMode = false;            // True while stage 8 is playing one of the patterns
+// Stage 9 (auto mode) bookkeeping
+bool autoMode = false;            // True while stage 9 is playing one of the patterns
 unsigned long patternStart = 0;   // When the current auto-mode pattern started (ms)
 
 // Animation speeds (milliseconds) - SPLIT FOR INDEPENDENT CONTROL
@@ -46,7 +46,7 @@ const int clockwiseSpeed = 90;
 const int blinkSpeed = 600;
 const int fillSpeed = 150;      // Stage 7: time between each new pair lighting up
 const int fillHold = 500;       // Stage 7: how long the full heart stays lit before it restarts
-const unsigned long autoPatternTime = 4000; // Stage 8: how long each pattern plays before the next one
+const unsigned long autoPatternTime = 4000; // Stage 9: how long each pattern plays before the next one
 
 void setup() {
   // Initialize all LEDs as outputs and turn them off
@@ -81,6 +81,7 @@ void runStage(int s) {
     case 6: stage6(); break;
     case 7: stage7(); break;
     case 8: stage8(); break;
+    case 9: stage9(); break;
   }
 }
 
@@ -289,14 +290,30 @@ void stage7() {
   }
 }
 
-// Stage 8: Auto mode - plays stages 2 to 7 on a loop, autoPatternTime each,
-// until the button is pressed (which wraps around to stage 1: all OFF)
+// Stage 8: Bottom to top pairs (stage 2 in reverse)
 void stage8() {
+  while (!shouldStop()) {
+    for (int i = 8; i >= 0; i--) { // Bottom (8) up to Top (0)
+      turnAllOff();
+      lightLevel(i);
+      smartDelay(stage2Speed);
+      if (shouldStop()) return;
+    }
+  }
+}
+
+// Stages played by auto mode, in order (stage 6, all ON steady, is left out)
+const int autoStages[] = {2, 3, 4, 5, 7, 8};
+const int numAutoStages = sizeof(autoStages) / sizeof(autoStages[0]);
+
+// Stage 9: Auto mode - plays the autoStages on a loop, autoPatternTime each,
+// until the button is pressed (which wraps around to stage 1: all OFF)
+void stage9() {
   while (!stageChanged) {
-    for (int s = 2; s <= 7; s++) {
+    for (int k = 0; k < numAutoStages; k++) {
       autoMode = true;
       patternStart = millis();
-      runStage(s);              // Returns when its time is up or the button is pressed
+      runStage(autoStages[k]);              // Returns when its time is up or the button is pressed
       autoMode = false;
       if (stageChanged) return;
     }
